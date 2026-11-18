@@ -72,10 +72,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	run("npx", "browserslist@latest", "--update-db")
-
 	// install npm dependencies
-	run("npm", "install")
+	run("npm", "ci")
 	// build app
 	run("npm", "run", "build")
 

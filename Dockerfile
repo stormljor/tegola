@@ -27,7 +27,7 @@
 #  $ docker run -v /path/to/docker-config:/opt/tegola_config -p 8080 tegola serve
 
 # Intermediary container for building
-FROM golang:1.26.7-alpine3.23 AS build
+FROM golang:1.27.4-alpine3.24 AS build
 
 ARG BUILDPKG="github.com/go-spatial/tegola/internal/build"
 ARG VER="Version Not Set"
@@ -59,7 +59,7 @@ RUN cd /go/src/github.com/go-spatial/tegola/cmd/tegola \
 	&& chmod a+x /opt/tegola
 
 # Create minimal deployment image, just alpine & the binary
-FROM alpine:3.18
+FROM alpine:3.24
 
 RUN apk update \
 	&& apk add ca-certificates \
