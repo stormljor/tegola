@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import maplibregl from "maplibre-gl";
+import { Popup } from "maplibre-gl";
 import MapRow from "./MapRow.vue";
 import MapLayerRow from "./MapLayerRow.vue";
 import { store, mutations } from "@/globals/store";
@@ -94,7 +94,7 @@ export default {
     toggleFeatureInspector() {
       if (!this.inspector) {
         // new popup instance
-        this.inspector = new maplibregl.Popup();
+        this.inspector = new Popup();
       }
 
       if (!this.inspectorIsActive) {
@@ -112,14 +112,12 @@ export default {
     },
 
     // inspectFeatures handles querying the map instance at the position of the cursor
-    // sorting the returned feature keys, building up the HTML fragments and injecting
-    // the HTML into a mapbox GL popup instance.
+    // and displaying the sorted feature properties in a MapLibre popup.
     //
     // TODO (arolek): this should be refactored. It was ported from the original tegola viewer
     // and is quity ugly to look at and maintain. The UX would be better if no popup was used
     // as the feature properties often produce a list longer than the screen.
     inspectFeatures(e) {
-      var html = "";
       var bbox = {
         width: 10,
         height: 10
@@ -133,45 +131,36 @@ export default {
 
       // everPresent contains the keys that should be "pinned" to the top of the feature inspector. Others
       // will follow and simply be ordered by alpha. See https://github.com/go-spatial/tegola/issues/367
-      var everPresent = ["name", "type", "featurecla"];
-      for (var i = 0, l = features.length; i < l; i++) {
-        html += "<h4>" + features[i].layer.id + "</h4>";
-        html += "<ul>";
-        html +=
-          '<li>feature id <span class="float-r">' +
-          features[i].id +
-          "</span></li>";
-        everPresent.forEach(function (key) {
-          if (typeof features[i].properties[key] !== "undefined") {
-            html +=
-              "<li>" +
-              key +
-              '<span class="float-r">' +
-              features[i].properties[key] +
-              "</span></li>";
-          }
-        });
-        Object.keys(features[i].properties)
-          .sort()
-          .forEach(function (key) {
-            if (everPresent.indexOf(key) < 0) {
-              html +=
-                "<li>" +
-                key +
-                '<span class="float-r">' +
-                features[i].properties[key] +
-                "</span></li>";
-            }
-          });
-        html += "</ul>";
+      const everPresent = ["name", "type", "featurecla"];
+      const content = document.createDocumentFragment();
+      const addProperty = (list, key, value) => {
+        const row = document.createElement("li");
+        const label = document.createElement("span");
+        label.className = "float-r";
+        label.textContent = String(value);
+        row.append(key, label);
+        list.append(row);
+      };
+      for (const feature of features) {
+        const heading = document.createElement("h4");
+        heading.textContent = feature.layer.id;
+        const list = document.createElement("ul");
+        addProperty(list, "feature id ", feature.id);
+        const properties = feature.properties;
+        const pinned = everPresent.filter((key) => properties[key] !== undefined);
+        const remaining = Object.keys(properties)
+          .filter((key) => !everPresent.includes(key))
+          .sort();
+        for (const key of [...pinned, ...remaining]) {
+          addProperty(list, key, properties[key]);
+        }
+        content.append(heading, list);
       }
 
-      if (html != "") {
-        this.inspector.setLngLat(e.lngLat).setHTML(html).addTo(map);
-      } else {
-        if (this.inspector.isOpen()) {
-          this.inspector.remove();
-        }
+      if (features.length > 0) {
+        this.inspector.setLngLat(e.lngLat).setDOMContent(content).addTo(map);
+      } else if (this.inspector.isOpen()) {
+        this.inspector.remove();
       }
     },
 

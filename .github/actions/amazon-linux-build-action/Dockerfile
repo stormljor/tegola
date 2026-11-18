@@ -5,8 +5,8 @@ FROM amazonlinux:latest
 RUN yum install -y tar gzip gcc
 
 # install Go
-ENV GOLANG_VERSION=1.26.7
-ENV GOLANG_VERSION_SHA256=ffb5f8de10c62550dfddab66b36b57030721e0a44a3218e9e1181d7b59f121ca
+ENV GOLANG_VERSION=1.27.4
+ENV GOLANG_VERSION_SHA256=7226736c2339719cda28fbf3a54d71aa63bcefe376e98cef00034268dab24840
 
 RUN curl -o golang.tar.gz https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz \
 	&& echo "$GOLANG_VERSION_SHA256 golang.tar.gz" | sha256sum --strict --check \

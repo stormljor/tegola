@@ -6,7 +6,8 @@
 import { store, mutations } from "@/globals/store";
 import { mapSetters } from "@/globals/map";
 import ToggleTileBoundariesControl from "./MapControls";
-import maplibregl from "maplibre-gl";
+import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 
 export default {
   name: "Viewer",
@@ -15,7 +16,8 @@ export default {
     let url = store.apiRoot + "maps/" + store.activeMap.name + "/style.json";
 
     // instantiate MapLibre GL
-    let m = new maplibregl.Map({
+    setWorkerUrl(workerUrl);
+    let m = new MapLibreMap({
       container: "map",
       style: url,
       hash: true
@@ -23,7 +25,7 @@ export default {
 
     m.on("load", function () {
       // add navigation control
-      let nav = new maplibregl.NavigationControl();
+      let nav = new NavigationControl();
       m.addControl(nav, "bottom-right");
 
       // custom controls
